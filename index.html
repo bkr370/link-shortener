@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Shortener</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Press Start 2P', monospace;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 255, 255, 0.03) 2px,
+          rgba(0, 255, 255, 0.03) 4px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 3px,
+          rgba(255, 0, 255, 0.02) 3px,
+          rgba(255, 0, 255, 0.02) 6px
+        );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 600px;
+      max-width: 94vw;
+    }
+
+    .window {
+      background: linear-gradient(145deg, #c0c0c0, #a0a0a0);
+      border: 4px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
+      padding: 0;
+      margin-bottom: 20px;
+    }
+
+    .window-title {
+      background: linear-gradient(90deg, #000080, #1084d0);
+      color: white;
+      padding: 8px 12px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid #808080;
+    }
+
+    .window-title .icon {
+      width: 14px;
+      height: 14px;
+      background: linear-gradient(135deg, #00ff00, #008000);
+      border: 2px solid #fff;
+      display: inline-block;
+    }
+
+    .window-title .close {
+      margin-left: auto;
+      width: 14px;
+      height: 14px;
+      background: linear-gradient(135deg, #ff4444, #cc0000);
+      border: 2px solid #fff;
+      cursor: pointer;
+    }
+
+    .window-body {
+      padding: 24px 20px 20px;
+      background: linear-gradient(180deg, #d4d0c8, #beb9b0);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 14px;
+      color: #000080;
+      text-shadow: 2px 2px 0 #ffffff;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      animation: glowPulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glowPulse {
+      0% { text-shadow: 2px 2px 0 #fff, 0 0 5px cyan; }
+      100% { text-shadow: 2px 2px 0 #fff, 0 0 15px magenta; }
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      border: 3px solid;
+      border-color: #808080 #ffffff #ffffff #808080;
+    }
+
+    .input-group input {
+      flex: 1;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 12px 10px;
+      border: none;
+      background: #ffffff;
+      color: #1a1a2e;
+      outline: none;
+    }
+
+    .input-group input::placeholder {
+      color: #888;
+    }
+
+    .btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 10px 16px;
+      border: 3px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      background: linear-gradient(180deg, #e0e0e0, #b0b0b0);
+      color: #1a1a2e;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.05s;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      border-color: #808080 #ffffff #ffffff #808080;
+      background: linear-gradient(0deg, #e0e0e0, #b0b0b0);
+      transform: translate(1px, 1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #00cccc, #008888);
+      color: white;
+      border-color: #00ffff #006666 #006666 #00ffff;
+      text-shadow: 1px 1px 0 #004444;
+    }
+
+    .btn-primary:active {
+      border-color: #006666 #00ffff #00ffff #006666;
+      background: linear-gradient(0deg, #00cccc, #008888);
+    }
+
+    .btn-cyber {
+      background: linear-gradient(180deg, #ff00ff, #aa00aa);
+      color: white;
+      border-color: #ff66ff #660066 #660066 #ff66ff;
+      text-shadow: 1px 1px 0 #440044;
+    }
+
+    .btn-cyber:active {
+      border-color: #660066 #ff66ff #ff66ff #660066;
+      background: linear-gradient(0deg, #ff00ff, #aa00aa);
+    }
+
+    .btn-green {
+      background: linear-gradient(180deg, #00cc00, #008800);
+      color: white;
+      border-color: #00ff00 #006600 #006600 #00ff00;
+      text-shadow: 1px 1px 0 #004400;
+    }
+
+    .btn-green:active {
+      border-color: #006600 #00ff00 #00ff00 #006600;
+      background: linear-gradient(0deg, #00cc00, #008800);
+    }
+
+    .result-box {
+      margin-top: 16px;
+      border: 3px solid;
+      border-color: #808080 #ffffff #ffffff #808080;
+      padding: 12px;
+      background: #ffffff;
+      display: none;
+      word-break: break-all;
+    }
+
+    .result-box.show {
+      display: block;
+      animation: resultIn 0.3s ease-out;
+    }
+
+    @keyframes resultIn {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .result-box .short-url {
+      font-size: 10px;
+      color: #000080;
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .short-url a {
+      color: #000080;
+      text-decoration: underline wavy #ff00ff;
+    }
+
+    .short-url a:hover {
+      color: #ff00ff;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .result-actions .btn {
+      font-size: 7px;
+      padding: 8px 12px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, #00cc00, #008800);
+      color: white;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 12px 24px;
+      border: 3px solid;
+      border-color: #00ff00 #006600 #006600 #00ff00;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .window-footer {
+      margin-top: 0;
+      background: linear-gradient(90deg, #000080, #1084d0);
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 2px solid #808080;
+    }
+
+    .window-footer span {
+      color: white;
+      font-size: 6px;
+      opacity: 0.8;
+    }
+
+    .blink {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding: 4px 8px;
+      background: #d4d0c8;
+      border: 2px solid;
+      border-color: #808080 #ffffff #ffffff #808080;
+    }
+
+    .status-bar span {
+      font-size: 6px;
+      color: #444;
+    }
+
+    .status-bar .led {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      animation: blink 1s step-end infinite;
+    }
+
+    .led.green {
+      background: #00ff00;
+      box-shadow: 0 0 6px #00ff00;
+    }
+
+    @media (max-width: 500px) {
+      .window-body { padding: 16px 12px; }
+      h1 { font-size: 10px; }
+      .input-group input { font-size: 6px; padding: 10px 8px; }
+      .btn { font-size: 6px; padding: 8px 10px; }
+      .result-box .short-url { font-size: 7px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="window">
+      <div class="window-title">
+        <span class="icon"></span>
+        <span>LINK SHORTENER v2.0</span>
+        <span class="close"></span>
+      </div>
+      <div class="window-body">
+        <h1>&gt;&gt; URL SHRINKER &lt;&lt;</h1>
+
+        <div class="input-group">
+          <input type="text" id="urlInput" placeholder="Paste your long URL here..." autofocus>
+          <button class="btn btn-primary" id="shortenBtn">SHORTEN!</button>
+        </div>
+
+        <div class="result-box" id="resultBox">
+          <div class="short-url" id="shortUrlDisplay"></div>
+          <div class="result-actions">
+            <button class="btn btn-cyber" id="copyBtn">COPY LINK</button>
+            <button class="btn btn-green" id="resetBtn">NEW LINK</button>
+          </div>
+        </div>
+
+        <div class="status-bar">
+          <span><span class="led green"></span>SYSTEM <span class="blink">ONLINE</span></span>
+          <span id="statusCount">LINKS: 0</span>
+        </div>
+      </div>
+      <div class="window-footer">
+        <span>&copy; 2026 SHRINK-TEK INDUSTRIES</span>
+        <span>[<span class="blink">_</span>]</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const urlInput = document.getElementById('urlInput');
+    const shortenBtn = document.getElementById('shortenBtn');
+    const resultBox = document.getElementById('resultBox');
+    const shortUrlDisplay = document.getElementById('shortUrlDisplay');
+    const copyBtn = document.getElementById('copyBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const statusCount = document.getElementById('statusCount');
+    const toast = document.getElementById('toast');
+
+    let currentShortUrl = '';
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    shortenBtn.addEventListener('click', async () => {
+      const url = urlInput.value.trim();
+      if (!url) {
+        showToast('ENTER A URL FIRST!');
+        return;
+      }
+
+      shortenBtn.disabled = true;
+      shortenBtn.textContent = '...';
+
+      try {
+        const res = await fetch('/api/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          showToast(err.error || 'ERROR!');
+          return;
+        }
+
+        const data = await res.json();
+        currentShortUrl = data.shortUrl;
+        shortUrlDisplay.innerHTML = `<a href="${currentShortUrl}" target="_blank">${currentShortUrl}</a>`;
+        resultBox.classList.add('show');
+        loadCount();
+        showToast('LINK CREATED!');
+      } catch (e) {
+        showToast('CONNECTION ERROR!');
+      } finally {
+        shortenBtn.disabled = false;
+        shortenBtn.textContent = 'SHORTEN!';
+      }
+    });
+
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') shortenBtn.click();
+    });
+
+    copyBtn.addEventListener('click', () => {
+      if (!currentShortUrl) return;
+      navigator.clipboard.writeText(currentShortUrl).then(() => {
+        showToast('COPIED TO CLIPBOARD!');
+      }).catch(() => {
+        showToast('COPY FAILED!');
+      });
+    });
+
+    resetBtn.addEventListener('click', () => {
+      urlInput.value = '';
+      resultBox.classList.remove('show');
+      currentShortUrl = '';
+      urlInput.focus();
+    });
+
+    async function loadCount() {
+      try {
+        const res = await fetch('/api/links');
+        const links = await res.json();
+        statusCount.textContent = `LINKS: ${links.length}`;
+      } catch (e) {}
+    }
+
+    loadCount();
+  </script>
+</body>
+</html>
